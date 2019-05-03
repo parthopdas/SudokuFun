@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.572
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SudokuFun", "SudokuFun\SudokuFun.fsproj", "{AE166B44-5C98-48D9-8B5E-23711F12F340}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AE166B44-5C98-48D9-8B5E-23711F12F340}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE166B44-5C98-48D9-8B5E-23711F12F340}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE166B44-5C98-48D9-8B5E-23711F12F340}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE166B44-5C98-48D9-8B5E-23711F12F340}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FB7C414F-AA4F-4A28-9E7F-EF14A3C02D58}
+	EndGlobalSection
+EndGlobal
