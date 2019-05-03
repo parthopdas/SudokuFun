@@ -6,6 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="YaFunTK.fs" />
+    <Compile Include="Board.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

@@ -1,8 +1,25 @@
-﻿// Learn more about F# at http://fsharp.org
+﻿(*
+  Types:
+  - Primitive
+  - Algebraic [+, *, ^]
+  - Flavors
 
-open System
+  Functions:
+  - Pure & total
+  - Partial application & Currying
+  - Higher order
+  - Composition techniques
+
+  Tools
+  - Monoids
+  - Functors/Applicatives/Monads
+  - Catamorphisms
+  - Actors
+ *)
+
 
 [<EntryPoint>]
-let main argv =
-    printfn "Hello World from F#!"
+let main _ =
+    let b = SudokuFun.initBoard ()
+    printfn "%A" b
     0 // return an integer exit code
