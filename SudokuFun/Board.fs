@@ -2,8 +2,12 @@
 
 open System.Text
 
+type Cell =
+    | Digit of int
+    | Candidates of Set<int>
+
 type Board =
-    | Board of Set<int>[,] 
+    | Board of Cell[,] 
 
 let defaultCellCandidates = Set.ofSeq [ 1..9 ]
 
@@ -13,7 +17,7 @@ let cellIndices =
                 yield (i, j) }
     |> List.ofSeq
 
-let nonetIndicesMap =
+let blockIndicesMap =
     cellIndices
     |> Seq.groupBy (fun (i, j) -> (i / 3, j / 3))
     |> Map.ofSeq
@@ -26,99 +30,128 @@ let initBoard str =
     if (String.length str <> 81) then
         failwith "Input must be a string of 81 characters"
 
-    let b = Array2D.create 9 9 Set.empty
+    let b = Array2D.create 9 9 (Digit 0)
 
     cellIndices
     |> Seq.iter (
         fun (i, j) -> 
             let c = (int str.[i * 9 + j] - int '0')
-            let s = if c >= 1 && c <= 9 then Set.singleton c else defaultCellCandidates
+            let s = if c >= 1 && c <= 9 then Digit c else Candidates defaultCellCandidates
             b.[i,j] <- s)
     
     b |> Board
 
-let getSetOfFilledCells : seq<Set<int>> -> Set<int> =
-    Seq.filter (fun x -> x.Count = 1)
-    >> Seq.map Seq.exactlyOne
+let getSetOfHints : seq<Cell> -> Set<int> =
+    Seq.choose (function | Digit d -> Some d | Candidates _ -> None)
     >> Set.ofSeq
 
-let getNonetOccupancy (Board b) i j =
-    nonetIndicesMap
+let getBlockOccupancy (Board b) i j =
+    blockIndicesMap
     |> Map.find (i, j)
     |> Seq.map (fun (i, j) -> b.[i, j])
-    |> getSetOfFilledCells
+    |> getSetOfHints
 
 let getRowOccupancy (Board b) i =
     b.[i, *]
-    |> getSetOfFilledCells
+    |> getSetOfHints
 
 let getColumnOccupancy (Board b) j =
     b.[*, j]
-    |> getSetOfFilledCells
+    |> getSetOfHints
 
-let crossHatchCell (Board b) i j =
-    if b.[i,j].Count = 1 then
-        ()
-    else
-        let nSet = getNonetOccupancy (Board b) (i / 3) (j / 3)
-        let rSet = getRowOccupancy (Board b) i
-        let cSet = getColumnOccupancy (Board b) j   
-        let candidates = Set.difference defaultCellCandidates (Set.unionMany [ nSet; rSet; cSet ])
-        b.[i,j] <- candidates
-        
 let numberOfHints (Board b) =
     cellIndices
-    |> Seq.filter (fun (i, j) -> b.[i,j].Count = 1)
+    |> Seq.choose (fun (i, j) -> match b.[i,j] with | Digit d -> Some d | Candidates _ -> None)
     |> Seq.length
 
-let crossHatch (Board b) =
+/// Strategy #1: Naked single (https://www.youtube.com/watch?v=b123EURtu3I)
+let applyNakedSingleStrategy (Board b) =
+    let crossHatchCell (Board b) i j =
+        match b.[i,j] with
+        | Digit _ -> ()
+        | Candidates _ -> 
+            let n = getBlockOccupancy (Board b) (i / 3) (j / 3)
+            let r = getRowOccupancy (Board b) i
+            let c = getColumnOccupancy (Board b) j   
+            let cs = Set.difference defaultCellCandidates (Set.unionMany [ n; r; c ])
+            b.[i,j] <- if Seq.length cs = 1 then Digit <| Seq.exactlyOne cs else Candidates cs
+        
     cellIndices
     |> Seq.iter (fun (i, j) -> crossHatchCell (Board b) i j)
-    numberOfHints (Board b)
 
 let isSolved b = numberOfHints b = 81
 
 let printBoard (Board b) =
+    let getProgress (Board b) =
+        cellIndices 
+        |> Seq.map (fun (i, j) -> match b.[i,j] with | Digit _ -> 1 | Candidates cs -> Seq.length cs) 
+        |> Seq.fold (+) 0
+
     let boardStr = 
         [| "╔═══╤═══╤═══╦═══╤═══╤═══╦═══╤═══╤═══╗"
            "║   │   │   ║   │   │   ║   │   │   ║"
-           "╟───┼───┼───╫───┼───┼───╫───┼───┼───╢"
+           "║   │   │   ║   │   │   ║   │   │   ║"
            "║   │   │   ║   │   │   ║   │   │   ║"
            "╟───┼───┼───╫───┼───┼───╫───┼───┼───╢"
+           "║   │   │   ║   │   │   ║   │   │   ║"
+           "║   │   │   ║   │   │   ║   │   │   ║"
+           "║   │   │   ║   │   │   ║   │   │   ║"
+           "╟───┼───┼───╫───┼───┼───╫───┼───┼───╢"
+           "║   │   │   ║   │   │   ║   │   │   ║"
+           "║   │   │   ║   │   │   ║   │   │   ║"
            "║   │   │   ║   │   │   ║   │   │   ║"
            "╠═══╪═══╪═══╬═══╪═══╪═══╬═══╪═══╪═══╣"
            "║   │   │   ║   │   │   ║   │   │   ║"
-           "╟───┼───┼───╫───┼───┼───╫───┼───┼───╢"
+           "║   │   │   ║   │   │   ║   │   │   ║"
            "║   │   │   ║   │   │   ║   │   │   ║"
            "╟───┼───┼───╫───┼───┼───╫───┼───┼───╢"
+           "║   │   │   ║   │   │   ║   │   │   ║"
+           "║   │   │   ║   │   │   ║   │   │   ║"
+           "║   │   │   ║   │   │   ║   │   │   ║"
+           "╟───┼───┼───╫───┼───┼───╫───┼───┼───╢"
+           "║   │   │   ║   │   │   ║   │   │   ║"
+           "║   │   │   ║   │   │   ║   │   │   ║"
            "║   │   │   ║   │   │   ║   │   │   ║"
            "╠═══╪═══╪═══╬═══╪═══╪═══╬═══╪═══╪═══╣"
            "║   │   │   ║   │   │   ║   │   │   ║"
-           "╟───┼───┼───╫───┼───┼───╫───┼───┼───╢"
+           "║   │   │   ║   │   │   ║   │   │   ║"
            "║   │   │   ║   │   │   ║   │   │   ║"
            "╟───┼───┼───╫───┼───┼───╫───┼───┼───╢"
+           "║   │   │   ║   │   │   ║   │   │   ║"
+           "║   │   │   ║   │   │   ║   │   │   ║"
+           "║   │   │   ║   │   │   ║   │   │   ║"
+           "╟───┼───┼───╫───┼───┼───╫───┼───┼───╢"
+           "║   │   │   ║   │   │   ║   │   │   ║"
+           "║   │   │   ║   │   │   ║   │   │   ║"
            "║   │   │   ║   │   │   ║   │   │   ║"
            "╚═══╧═══╧═══╩═══╧═══╧═══╩═══╧═══╧═══╝" |]
         |> Array.map String.toCharArray
 
     cellIndices
     |> Seq.iter 
-        (fun (i, j) -> 
-            if (b.[i,j].Count = 1) then 
-                (boardStr.[2 * i + 1].[4 * j + 2] <- char ((b.[i,j] |> Seq.exactlyOne) + int '0')))
+        (fun (i, j) ->
+            match b.[i,j] with
+            | Digit d ->
+                boardStr.[4 * i + 2].[4 * j + 2] <- char (d + int '0')
+            | Candidates cs ->
+                defaultCellCandidates
+                |> Seq.iter 
+                    (fun d -> 
+                        if Set.contains d cs then 
+                            boardStr.[4 * i + (d - 1) / 3 + 1].[4 * j + (d - 1) % 3 + 1] <- char (d + int '0')))
 
     boardStr
     |> Seq.map String.fromCharArray
     |> Seq.fold StringBuilder.appendLine (StringBuilder())
-    |> printfn "%A"
+    |> printf "%A"
+    printfn "Progress = %d\n" (getProgress (Board b))
 
 let solve b =
-    let rec solveImpl h0 p b =
+    let rec solveImpl p b =
         if (isSolved b) then
             p
         else
-            let h1 = crossHatch b
-            if h0 = h1 then failwithf "Unable to solve any futher after %d passes. Apply other strategy(s)." (p + 1)
+            applyNakedSingleStrategy b
             printBoard b
-            solveImpl h1 (p + 1) b
-    solveImpl (numberOfHints b) 0 b
+            solveImpl (p + 1) b
+    solveImpl 0 b

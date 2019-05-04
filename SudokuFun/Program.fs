@@ -20,7 +20,7 @@
 
 [<EntryPoint>]
 let main _ =
-    let b = SudokuFun.initBoard ".47..1.5.9....5.......7....7.5.92.4.4..56..1781..4..2.1....4.....27......6..29..."
+    let b = SudokuFun.initBoard "6..8...42..16....7..7.....3.6.5...1..........728..4.6...3.4..8.4..7..3...1..5...."
     SudokuFun.printBoard b
     let passes = SudokuFun.solve b
     printfn "Number of passses = %d" passes    
