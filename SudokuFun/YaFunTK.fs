@@ -136,6 +136,21 @@ module String =
   
     let substring index (s : string) =
         s.Substring index
+  
+    let toCharArray (s : string) =
+        s.ToCharArray()
+  
+    let fromCharArray (cs : char []) =
+        String cs
+
+
+[<RequireQualifiedAccess>]
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+module StringBuilder = 
+    open System.Text
+
+    let appendLine (sb: StringBuilder) x =
+        sb.AppendLine(x)
 
 
 module Result =
@@ -283,7 +298,6 @@ module Async =
 
 [<RequireQualifiedAccess>]
 module App = 
-    open System.IO
     open System.Reflection
     
     /// Gets the calling assembly's informational version number as a string
